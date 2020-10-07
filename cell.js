@@ -1,6 +1,11 @@
 class Cell {
     constructor(vec) {
       this.pos = vec;
+      this.id = Math.random();
+    }
+
+    equals(other) {
+        return (this.id==other.id);
     }
 }
   
@@ -18,13 +23,13 @@ function initCellPs(minD, maxD, maxX, maxY) {
     var placed = 1;
     var tries = 0;
     let newPt = createVector(Math.random()*maxX,Math.random()*maxY);
-    result.push(newPt);
+    result.push(new Cell(newPt));
     while ( tries<10000) {
         newPt = createVector(Math.random()*maxX, Math.random()*maxY);
         var farEnough = true;
         var closeEnough = false;
         for (var i=0; i<placed; i++) {
-            let d = cellDist(result[i],newPt);
+            let d = cellDist(result[i].pos,newPt);
             if (d<minD) {
             farEnough = false;
         }
@@ -33,7 +38,7 @@ function initCellPs(minD, maxD, maxX, maxY) {
         }
       }
       if (farEnough&&closeEnough) {
-        result.push(newPt);
+        result.push(new Cell(newPt));
         placed++;
       }
       tries++;

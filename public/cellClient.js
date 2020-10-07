@@ -7,8 +7,8 @@ function updateCellClientProps(state, props) {
 function initCellClientProps(state) {
     let ps = [];
     let vs = [];
-    for (var i=0; i<state.cellPs.length; i++) {
-        ps.push(copyVec(state.cellPs[i]));
+    for (var i=0; i<state.cells.length; i++) {
+        ps.push(copyVec(state.cells[i].pos));
         vs.push(createVector());
     }
     return {ps: ps, vs: vs};
@@ -18,6 +18,7 @@ function runCellClient(state, props) {
     let ps = props.cell
     let m = createVector(mouseX, mouseY);
     let clstInd = closestPtInd(props.ps, m)
+    clstCellInd = clstInd;
     //print(props.vs[0]);
     for (var i=0; i<props.ps.length; i++) {
         let curP = props.ps[i];
@@ -32,7 +33,7 @@ function runCellClient(state, props) {
         }
     }
     for (var i=0; i<props.ps.length; i++) {
-        lerpVecs(props.ps[i], state.cellPs[i], 0.1);
+        lerpVecs(props.ps[i], state.cells[i].pos, 0.1);
         multVec(props.vs[i], 0.7);
         props.ps[i].x+=props.vs[i].x;
         props.ps[i].y+=props.vs[i].y;

@@ -5,9 +5,12 @@
 //create a socket connection
 var socket;
 var pointer;
-var clicked = false;
+var prevCellAdded;
+var sinceLastAdd = 0;
+var clstCellInd;
+var cellToAdd;
 //I send updates at the same rate as the server update
-var UPDATE_TIME = 1000 / 24;
+var UPDATE_TIME = 1000 / 60;
 
 var cellClientProps;
 
@@ -38,9 +41,13 @@ function setup() {
 
     //every x time I update the server on my position
     setInterval(function () {
-        socket.emit('clientUpdate', { x: mouseX, y: mouseY,
-                     c: clicked});
-        clicked = false;
+        socket.emit('clientUpdate', { x: mouseX, y: mouseY, addCell: cellToAdd});
+        if (cellToAdd!=null) {
+            prevAddedInd = cellToAdd;
+            sinceLastAdd = 200;
+            cellToAdd = null;
+        }
+        if (sinceLastAdd>0) sinceLastAdd--;
     }, UPDATE_TIME);
     noCursor();
 }
@@ -51,7 +58,12 @@ function draw() {
 }
 
 function mousePressed() {
-    clicked = true;
+    if (sinceLastAdd==0 || clstCellInd != prevAddedInd) {
+        cellToAdd = clstCellInd;
+    }
+}
+function mouseDragged() {
+    mousePressed();
 }
 
 
@@ -60,6 +72,21 @@ function updateState(state) {
     cellClientProps = updateCellClientProps(state, cellClientProps);
     //draw a white background
     background(255, 255, 255);
+
+    for (var playerId in state.players) {
+        if (state.players.hasOwnProperty(playerId)) {
+            let plyr = state.players[playerId];
+            let color = plyr.blob.color;
+            stroke(color[0],color[1],color[2]);
+            for (var i=0; i<plyr.blob.cellInds.length; i++) {
+                let c = cellClientProps.ps[plyr.blob.cellInds[i]];
+                let a = plyr.blob.amts[i];
+                strokeWeight(sqrt(a));
+                point(c.x,c.y);
+            }
+        }
+    }
+
     stroke(0);strokeWeight(12);
     for (let i=0; i<cellClientProps.ps.length; i++) {
         let p = cellClientProps.ps[i];

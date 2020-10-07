@@ -5,6 +5,7 @@ var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+let Blob = require('./blob.js');
 
 var fs = require('fs');
 // file is included here:
@@ -13,13 +14,13 @@ eval(fs.readFileSync('cell.js')+'');
 
 //the rate the server updates all the clients, 10fps
 //setInterval works in milliseconds
-var UPDATE_TIME = 1000 / 24;
+var UPDATE_TIME = 1000 / 60;
 
 //We want the server to keep track of the whole game state and the clients just to send updates
 //in this case the game state are the coordinates of each player
 var gameState = {
     players: {},
-    cellPs: initCellPs(50,120,1280,720)
+    cells: initCellPs(50,120,1280,720)
 }
 
 //when a client connects serve the static files in the public directory ie public/index.html
@@ -45,7 +46,8 @@ io.on('connection', function (socket) {
         //object creation in javascript
         gameState.players[socket.id] = {
             x: obj.x,
-            y: obj.y
+            y: obj.y,
+            blob: new Blob(socket.id)
         }
 
         //gameState.players is an object, not an array or list
@@ -70,19 +72,9 @@ io.on('connection', function (socket) {
     socket.on('clientUpdate', function (obj) {
         gameState.players[socket.id].x = obj.x;
         gameState.players[socket.id].y = obj.y;
-        if (gameState.players[socket.id].d>0) {
-            gameState.players[socket.id].d--;
-            return;
-        }
-        if (obj.c) {
-            for (var id in gameState.players) {
-                if (id==socket.id) continue;
-                let player = gameState.players[id];
-                let di = dist(obj.x,obj.y,player.x,player.y);
-                if (di<20) {
-                    player.d = 50;
-                }
-            }
+        if (obj.addCell != null) {
+            gameState.players[socket.id].blob.addCell(obj.addCell,600);
+            console.log(gameState.players[socket.id].blob.cellInds.length);
         }
     });
 
